@@ -14,9 +14,16 @@ require 'kaminari'
 Dir[File.expand_path(File.join(File.dirname(__FILE__),'support','**','*.rb'))].each {|f| require f}
 
 require 'factory_girl'
+require 'shoulda/matchers'
 plutus_definitions = File.expand_path(File.join(File.dirname(__FILE__), 'factories'))
 FactoryGirl.definition_file_paths << plutus_definitions
 
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
+end
 
 RSpec.configure do |config|
   config.use_transactional_fixtures = true
