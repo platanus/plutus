@@ -21,21 +21,25 @@ module Plutus
   # @see http://en.wikipedia.org/wiki/Journal_entry Journal Entry
   #
   # @author Michael Bulat
-  class Entry < ActiveRecord::Base
+  class Entry < ApplicationRecord
     before_save :default_date
 
     if ActiveRecord::VERSION::MAJOR > 4
-      belongs_to :commercial_document, :polymorphic => true, optional: true
+      belongs_to :commercial_document, polymorphic: true, optional: true
     else
-      belongs_to :commercial_document, :polymorphic => true
+      belongs_to :commercial_document, polymorphic: true
     end
 
-    has_many :credit_amounts, :extend => AmountsExtension, :class_name => 'Plutus::CreditAmount', :inverse_of => :entry
-    has_many :debit_amounts, :extend => AmountsExtension, :class_name => 'Plutus::DebitAmount', :inverse_of => :entry
-    has_many :credit_accounts, :through => :credit_amounts, :source => :account, :class_name => 'Plutus::Account'
-    has_many :debit_accounts, :through => :debit_amounts, :source => :account, :class_name => 'Plutus::Account'
+    has_many :credit_amounts, extend: AmountsExtension, class_name: 'Plutus::CreditAmount',
+                              inverse_of: :entry, dependent: :delete_all
+    has_many :debit_amounts, extend: AmountsExtension, class_name: 'Plutus::DebitAmount',
+                             inverse_of: :entry, dependent: :delete_all
+    has_many :credit_accounts, through: :credit_amounts, source: :account,
+                               class_name: 'Plutus::Account'
+    has_many :debit_accounts, through: :debit_amounts, source: :account,
+                              class_name: 'Plutus::Account'
 
-    validates_presence_of :description
+    validates :description, presence: true
     validate :has_credit_amounts?
     validate :has_debit_amounts?
     validate :amounts_cancel?
@@ -48,7 +52,9 @@ module Plutus
 
     # Support the deprecated .build method
     def self.build(hash)
-      ActiveSupport::Deprecation.warn('Plutus::Transaction.build() is deprecated (use new instead)', caller)
+      ActiveSupport::Deprecation.warn(
+        'Plutus::Transaction.build() is deprecated (use new instead)', caller
+      )
       new(hash)
     end
 
@@ -57,21 +63,24 @@ module Plutus
     end
 
     private
-      def default_date
-        todays_date = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now
-        self.date ||= todays_date
-      end
 
-      def has_credit_amounts?
-        errors[:base] << "Entry must have at least one credit amount" if self.credit_amounts.blank?
-      end
+    def default_date
+      todays_date = ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now
+      self.date ||= todays_date
+    end
 
-      def has_debit_amounts?
-        errors[:base] << "Entry must have at least one debit amount" if self.debit_amounts.blank?
-      end
+    def has_credit_amounts?
+      errors[:base] << "Entry must have at least one credit amount" if credit_amounts.blank?
+    end
 
-      def amounts_cancel?
-        errors[:base] << "The credit and debit amounts are not equal" if credit_amounts.balance_for_new_record != debit_amounts.balance_for_new_record
+    def has_debit_amounts?
+      errors[:base] << "Entry must have at least one debit amount" if debit_amounts.blank?
+    end
+
+    def amounts_cancel?
+      if credit_amounts.balance_for_new_record != debit_amounts.balance_for_new_record
+        errors[:base] << "The credit and debit amounts are not equal"
       end
+    end
   end
 end
