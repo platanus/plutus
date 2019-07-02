@@ -4,6 +4,8 @@ class CreatePlutusTables < ActiveRecord::Migration[4.2]
       t.string :name
       t.string :type
       t.boolean :contra, default: false
+      t.integer :scope_id
+      t.string :scope_type
 
       t.timestamps
     end
