@@ -88,9 +88,9 @@ module Plutus
 
     context "given a set of accounts" do
       let(:mock_document) { FactoryGirl.create(:asset) }
-      let!(:accounts_receivable) { FactoryGirl.create(:asset, name: "Accounts Receivable") }
-      let!(:sales_revenue) { FactoryGirl.create(:revenue, name: "Sales Revenue") }
-      let!(:sales_tax_payable) { FactoryGirl.create(:liability, name: "Sales Tax Payable") }
+      let!(:accounts_receivable) { FactoryGirl.create(:asset, code: "Accounts Receivable") }
+      let!(:sales_revenue) { FactoryGirl.create(:revenue, code: "Sales Revenue") }
+      let!(:sales_tax_payable) { FactoryGirl.create(:liability, code: "Sales Tax Payable") }
 
       shared_examples_for 'a built-from-hash Plutus::Entry' do
         its(:credit_amounts) { is_expected.not_to be_empty }
@@ -130,15 +130,15 @@ module Plutus
           include_examples 'a built-from-hash Plutus::Entry'
         end
 
-        context "when given a credit/debits hash with :account_name => String" do
+        context "when given a credit/debits hash with :account_code => String" do
           let(:hash) {
             {
                 description: "Sold some widgets",
                 commercial_document: mock_document,
-                debits: [{account_name: accounts_receivable.name, amount: 50}],
+                debits: [{account_code: accounts_receivable.code, amount: 50}],
                 credits: [
-                    {account_name: sales_revenue.name, amount: 45},
-                    {account_name: sales_tax_payable.name, amount: 5}
+                    {account_code: sales_revenue.code, amount: 45},
+                    {account_code: sales_tax_payable.code, amount: 5}
                 ]
             }
           }

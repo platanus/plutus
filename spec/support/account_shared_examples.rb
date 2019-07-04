@@ -24,8 +24,8 @@ shared_examples_for 'a Plutus::Account subtype' do |elements|
     it { is_expected.to respond_to(:debit_entries) }
   end
 
-  it "requires a name" do
-    account.name = nil
+  it "requires a code" do
+    account.code = nil
     expect(account).not_to be_valid
   end
 

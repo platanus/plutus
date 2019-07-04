@@ -1,13 +1,15 @@
 class CreatePlutusTables < ActiveRecord::Migration[4.2]
   def self.up
     create_table :plutus_accounts do |t|
-      t.string :name
+      t.string :code
       t.string :type
       t.boolean :contra
+      t.scope_id, :integer, index: true
+      t.scope_type, :string, index: true
 
       t.timestamps
     end
-    add_index :plutus_accounts, [:name, :type]
+    add_index :plutus_accounts, [:code, :type]
 
     create_table :plutus_entries do |t|
       t.string :description

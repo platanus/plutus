@@ -26,18 +26,18 @@ module Plutus
         FactoryGirlHelpers.reload()
       end
 
-      it 'validate uniqueness of name scoped to tenant' do
+      it 'validate uniqueness of code scoped to tenant' do
         account = FactoryGirl.create(:asset, tenant_id: 10)
 
-        record = FactoryGirl.build(:asset, name: account.name, tenant_id: 10)
+        record = FactoryGirl.build(:asset, code: account.code, tenant_id: 10)
         expect(record).not_to be_valid
-        expect(record.errors[:name]).to eq(['has already been taken'])
+        expect(record.errors[:code]).to eq(['has already been taken'])
       end
 
-      it 'allows same name scoped under a different tenant' do
+      it 'allows same code scoped under a different tenant' do
         account = FactoryGirl.create(:asset, tenant_id: 10)
 
-        record = FactoryGirl.build(:asset, name: account.name, tenant_id: 11)
+        record = FactoryGirl.build(:asset, code: account.code, tenant_id: 11)
         expect(record).to be_valid
       end
     end
