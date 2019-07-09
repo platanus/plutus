@@ -46,11 +46,11 @@ The Account class represents accounts in the system. The Account table uses sing
 Your Book of Accounts needs to be created prior to recording any entries. The simplest method is to have a number of `create` methods in your db/seeds.rb file like so:
 
 ```ruby
-Plutus::Asset.create(:name => "Accounts Receivable")
-Plutus::Asset.create(:name => "Cash")
-Plutus::Revenue.create(:name => "Sales Revenue")
-Plutus::Liability.create(:name => "Unearned Revenue")
-Plutus::Liability.create(:name => "Sales Tax Payable")
+Plutus::Asset.create(:code => "Accounts Receivable")
+Plutus::Asset.create(:code => "Cash")
+Plutus::Revenue.create(:code => "Sales Revenue")
+Plutus::Liability.create(:code => "Unearned Revenue")
+Plutus::Liability.create(:code => "Sales Tax Payable")
 ```
 
 Then simply run `rake db:seed`
@@ -58,7 +58,7 @@ Then simply run `rake db:seed`
 Each account can also be marked as a "Contra Account". A contra account will have its normal balance swapped. For example, to remove equity, a "Drawing" account may be created as a contra equity account as follows:
 
 ```ruby
-Plutus::Equity.create(:name => "Drawing", :contra => true)
+Plutus::Equity.create(:code => "Drawing", :contra => true)
 ```
 
 At all times the balance of all accounts should conform to the [Accounting
@@ -79,8 +79,8 @@ Recording an Entry
 Let's assume we're accounting on an [Accrual basis](http://en.wikipedia.org/wiki/Accounting_methods#Accrual_basis). We've just taken a customer's order for some widgets, which we've also billed him for. At this point we've actually added a liability to the company until we deliver the goods. To record this entry we'd need two accounts:
 
 ```ruby
->> Plutus::Asset.create(:name => "Cash")
->> Plutus::Liability.create(:name => "Unearned Revenue")
+>> Plutus::Asset.create(:code => "Cash")
+>> Plutus::Liability.create(:code => "Unearned Revenue")
 ```
 
 Next we'll build the entry we want to record. Plutus uses ActiveRecord conventions to build the transaction and its associated amounts.
@@ -90,12 +90,12 @@ entry = Plutus::Entry.new(
                 :description => "Order placed for widgets",
                 :date => Date.yesterday,
                 :debits => [
-                  {:account_name => "Cash", :amount => 100.00}],
+                  {:account_code => "Cash", :amount => 100.00}],
                 :credits => [
-                  {:account_name => "Unearned Revenue", :amount => 100.00}])
+                  {:account_code => "Unearned Revenue", :amount => 100.00}])
 ```
 
-Entries must specify a description, as well as at least one credit and debit amount. Specifying the date is optional; by default, the current date will be assigned to the entry before the record is saved. `debits` and `credits` must specify an array of hashes, with an amount value as well as an account, either by providing a `Plutus::Account` to `account` or by passing in an `account_name` string.
+Entries must specify a description, as well as at least one credit and debit amount. Specifying the date is optional; by default, the current date will be assigned to the entry before the record is saved. `debits` and `credits` must specify an array of hashes, with an amount value as well as an account, either by providing a `Plutus::Account` to `account` or by passing in an `account_code` string.
 
 Finally, save the entry.
 
@@ -111,9 +111,9 @@ Recording an Entry with multiple accounts
 Often times a single entry requires more than one type of account. A classic example would be a entry in which a tax is charged. We'll assume that we have not yet received payment for the order, so we'll need an "Accounts Receivable" Asset:
 
 ```ruby
->> Plutus::Asset.create(:name => "Accounts Receivable")
->> Plutus::Revenue.create(:name => "Sales Revenue")
->> Plutus::Liability.create(:name => "Sales Tax Payable")
+>> Plutus::Asset.create(:code => "Accounts Receivable")
+>> Plutus::Revenue.create(:code => "Sales Revenue")
+>> Plutus::Liability.create(:code => "Sales Tax Payable")
 ```
 
 And here's the entry:
@@ -122,10 +122,10 @@ And here's the entry:
 entry = Plutus::Entry.build(
                 :description => "Sold some widgets",
                 :debits => [
-                  {:account_name => "Accounts Receivable", :amount => 50}],
+                  {:account_code => "Accounts Receivable", :amount => 50}],
                 :credits => [
-                  {:account_name => "Sales Revenue", :amount => 45},
-                  {:account_name => "Sales Tax Payable", :amount => 5}])
+                  {:account_code => "Sales Revenue", :amount => 45},
+                  {:account_code => "Sales Tax Payable", :amount => 5}])
 entry.save
 ```
 
@@ -147,10 +147,10 @@ entry = Plutus::Entry.new(
                 :description => "Sold some widgets",
                 :commercial_document => invoice,
                 :debits => [
-                  {:account_name => "Accounts Receivable", :amount => invoice.total_amount}],
+                  {:account_code => "Accounts Receivable", :amount => invoice.total_amount}],
                 :credits => [
-                  {:account_name => "Sales Revenue", :amount => invoice.sales_amount},
-                  {:account_name => "Sales Tax Payable", :amount => invoice.tax_amount}])
+                  {:account_code => "Sales Revenue", :amount => invoice.sales_amount},
+                  {:account_code => "Sales Tax Payable", :amount => invoice.tax_amount}])
 entry.save
 ```
 
@@ -162,7 +162,7 @@ Checking the Balance of an  Individual Account
 Each account can report on its own balance. This number should normally be positive. If the number is negative, you may have a problem.
 
 ```ruby
->> cash = Plutus::Asset.find_by_name("Cash")
+>> cash = Plutus::Asset.find_by(code: "Cash")
 >> cash.balance
 => #<BigDecimal:103259bb8,'0.2E4',4(12)>
 ```
@@ -170,7 +170,7 @@ Each account can report on its own balance. This number should normally be posit
 The balance can also be calculated within a specified date range. Dates can be strings in the format of "yyyy-mm-dd" or Ruby Date objects.
 
 ```ruby
->> cash = Plutus::Asset.find_by_name("Cash")
+>> cash = Plutus::Asset.find_by(code: "Cash")
 >> cash.balance(:from_date => "2014-01-01", :to_date => Date.today)
 => #<BigDecimal:103259bb8,'0.2E4',4(12)>
 ```
@@ -212,8 +212,8 @@ For complex entries, you should always ensure that you are balancing your accoun
 For example, let's assume the owner of a business wants to withdraw cash. First we'll assume that we have an asset account for "Cash" which the funds will be drawn from. We'll then need an Equity account to record where the funds are going, however, in this case, we can't simply create a regular Equity account. The "Cash" account must be credited for the decrease in its balance since it's an Asset. Likewise, Equity accounts are typically credited when there is an increase in their balance. Equity is considered an owner's rights to Assets in the business. In this case however, we are not simply increasing the owner's rights to assets within the business; we are actually removing capital from the business altogether. Hence both sides of our accounting equation will see a decrease. In order to accomplish this, we need to create a Contra-Equity account we'll call "Drawings". Since Equity accounts normally have credit balances, a Contra-Equity account will have a debit balance, which is what we need for our entry.
 
 ```ruby
->> Plutus::Equity.create(:name => "Drawing", :contra => true)
->> Plutus::Asset.create(:name => "Cash")
+>> Plutus::Equity.create(:code => "Drawing", :contra => true)
+>> Plutus::Asset.create(:code => "Cash")
 ```
 
 We would then create the following entry:
@@ -222,17 +222,17 @@ We would then create the following entry:
 entry = Plutus::Entry.new(
                 :description => "Owner withdrawing cash",
                 :debits => [
-                  {:account_name => "Drawing", :amount => 1000}],
+                  {:account_code => "Drawing", :amount => 1000}],
                 :credits => [
-                  {:account_name => "Cash", :amount => 1000}])
+                  {:account_code => "Cash", :amount => 1000}])
 entry.save
 ```
 
 To make the example clearer, imagine instead that the owner decides to invest his money into the business in exchange for some type of equity security. In this case we might have the following accounts:
 
 ```ruby
->> Plutus::Equity.create(:name => "Common Stock")
->> Plutus::Asset.create(:name => "Cash")
+>> Plutus::Equity.create(:code => "Common Stock")
+>> Plutus::Asset.create(:code => "Cash")
 ```
 
 And out entry would be:
@@ -241,9 +241,9 @@ And out entry would be:
 entry = Plutus::Entry.new(
                 :description => "Owner investing cash",
                 :debits => [
-                  {:account_name => "Cash", :amount => 1000}],
+                  {:account_code => "Cash", :amount => 1000}],
                 :credits => [
-                  {:account_name => "Common Stock", :amount => 1000}])
+                  {:account_code => "Common Stock", :amount => 1000}])
 entry.save
 ```
 
@@ -261,9 +261,9 @@ Plutus is also compatible with the [Money](https://github.com/RubyMoney/money) g
 entry = Plutus::Entry.build(
                 :description => "Order placed for widgets",
                 :debits => [
-                  {:account_name => "Cash", :amount => money.amount}],
+                  {:account_code => "Cash", :amount => money.amount}],
                 :credits => [
-                  {:account_name => "Unearned Revenue", :amount => money.amount}])
+                  {:account_code => "Unearned Revenue", :amount => money.amount}])
 ```
 
 Multitenancy Support
@@ -291,11 +291,11 @@ Plutus.config do |config|
   config.tenant_class = 'Tenant'
 end
 ```
-*NOTE: When building entries, be sure to specify the account directly, rather than use the `account_name` feature. Otherwise you'll probably end up with the wrong account.*
+*NOTE: When building entries, be sure to specify the account directly, rather than use the `account_code` feature. Otherwise you'll probably end up with the wrong account.*
 
 ```ruby
-debit_account = Plutus::Account.where(:name => "Cash", :tenant => my_tenant).last
-credit_account = Plutus::Account.where(:name => "Unearned Revenue", :tenant => my_tenant).last
+debit_account = Plutus::Account.where(:code => "Cash", :tenant => my_tenant).last
+credit_account = Plutus::Account.where(:code => "Unearned Revenue", :tenant => my_tenant).last
 entry = Plutus::Entry.new(
                 :description => "Order placed for widgets",
                 :date => Date.yesterday,

@@ -13,7 +13,7 @@ module Plutus
   # normal balance swapped. For example, to remove equity, a "Drawing" account may be created
   # as a contra equity account as follows:
   #
-  #   Plutus::Equity.create(:name => "Drawing", contra => true)
+  #   Plutus::Equity.create(:code => "Drawing", contra => true)
   #
   # At all times the balance of all accounts should conform to the "accounting equation"
   #   Plutus::Assets = Liabilties + Owner's Equity
@@ -30,6 +30,8 @@ module Plutus
   #
   # @author Michael Bulat
   class Account < ActiveRecord::Base
+    self.ignored_columns = ["name"]
+    
     class_attribute :normal_credit_balance
 
     has_many :amounts

@@ -13,13 +13,15 @@
 ActiveRecord::Schema.define(version: 20170710174915) do
 
   create_table "plutus_accounts", force: :cascade do |t|
-    t.string "name"
+    t.string "code"
     t.string "type"
     t.boolean "contra"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "tenant_id"
-    t.index ["name", "type"], name: "index_plutus_accounts_on_name_and_type"
+    t.integer "scope_id"
+    t.string "scope_type"
+    t.index ["code", "type"], name: "index_plutus_accounts_on_code_and_type"
   end
 
   create_table "plutus_amounts", force: :cascade do |t|

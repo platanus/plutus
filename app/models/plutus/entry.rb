@@ -7,8 +7,8 @@ module Plutus
   # debit entries
   #
   # @example
-  #   cash = Plutus::Asset.find_by_name('Cash')
-  #   accounts_receivable = Plutus::Asset.find_by_name('Accounts Receivable')
+  #   cash = Plutus::Asset.find_by(code: 'Cash')
+  #   accounts_receivable = Plutus::Asset.find_by(code: 'Accounts Receivable')
   #
   #   debit_amount = Plutus::DebitAmount.new(:account => cash, :amount => 1000)
   #   credit_amount = Plutus::CreditAmount.new(:account => accounts_receivable, :amount => 1000)

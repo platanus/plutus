@@ -11,10 +11,10 @@ module Plutus
       let(:account) { FactoryGirl.create(:account, type: "Finance::Asset") }
       it { is_expected.to be_valid }
 
-      it "should be unique per name" do
-        conflict = FactoryGirl.build(:account, name: account.name, type: account.type)
+      it "should be unique per code" do
+        conflict = FactoryGirl.build(:account, code: account.code, type: account.type)
         expect(conflict).not_to be_valid
-        expect(conflict.errors[:name]).to eq(["has already been taken"])
+        expect(conflict.errors[:code]).to eq(["has already been taken"])
       end
     end
 
@@ -82,16 +82,16 @@ module Plutus
         investment = Entry.new(
           description: "Initial investment",
           date: Date.today,
-          debits: [{ account_name: equity.name, amount: 1000 }],
-          credits: [{ account_name: asset.name, amount: 1000 }],
+          debits: [{ account_code: equity.code, amount: 1000 }],
+          credits: [{ account_code: asset.code, amount: 1000 }],
         )
         investment.save
 
         purchase = Entry.new(
           description: "First computer",
           date: Date.today,
-          debits: [{ account_name: asset.name, amount: 900 }],
-          credits: [{ account_name: expense.name, amount: 900 }],
+          debits: [{ account_code: asset.code, amount: 900 }],
+          credits: [{ account_code: expense.code, amount: 900 }],
         )
         purchase.save
 
@@ -110,16 +110,16 @@ module Plutus
         investment = Entry.new(
           description: "Initial investment",
           date: Date.today,
-          debits: [{ account_name: equity.name, amount: 1000 }],
-          credits: [{ account_name: asset.name, amount: 1000 }],
+          debits: [{ account_code: equity.code, amount: 1000 }],
+          credits: [{ account_code: asset.code, amount: 1000 }],
         )
         investment.save
 
         purchase = Entry.new(
           description: "First computer",
           date: Date.today,
-          debits: [{ account_name: asset.name, amount: 900 }],
-          credits: [{ account_name: expense.name, amount: 900 }],
+          debits: [{ account_code: asset.code, amount: 900 }],
+          credits: [{ account_code: expense.code, amount: 900 }],
         )
         purchase.save
 
