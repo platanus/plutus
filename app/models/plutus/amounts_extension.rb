@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Plutus
   # Association extension for has_many :amounts relations. Internal.
   module AmountsExtension
@@ -13,11 +15,11 @@ module Plutus
     #   => #<BigDecimal:103259bb8,'0.2E4',4(12)>
     #
     # @return [BigDecimal] The decimal value balance
-    def balance(hash={})
-      if hash[:from_date] && hash[:to_date]
-        from_date = hash[:from_date].kind_of?(Date) ? hash[:from_date] : Date.parse(hash[:from_date])
-        to_date = hash[:to_date].kind_of?(Date) ? hash[:to_date] : Date.parse(hash[:to_date])
-        includes(:entry).where('plutus_entries.date' => from_date..to_date).sum(:amount)
+    def balance(hash = {})
+      if hash[:from_date] || hash[:to_date]
+        from_date = parse_date(hash[:from_date])
+        to_date = parse_date(hash[:to_date])
+        build_query(from_date, to_date).sum(:amount)
       else
         sum(:amount)
       end
@@ -30,13 +32,32 @@ module Plutus
     #
     # Since this does not use the database for sumation, it may be used on non-persisted records.
     def balance_for_new_record
-      balance = BigDecimal('0')
+      balance = BigDecimal(0)
       each do |amount_record|
         if amount_record.amount && !amount_record.marked_for_destruction?
-          balance += amount_record.amount # unless amount_record.marked_for_destruction?
+          balance += amount_record.amount
         end
       end
-      return balance
+      balance
+    end
+
+    private
+
+    def build_query(from_date, to_date)
+      query = includes(:entry)
+      if from_date && to_date
+        query.where('plutus_entries.date' => from_date..to_date)
+      elsif from_date
+        query.where('plutus_entries.date >= ?', from_date)
+      elsif to_date
+        query.where('plutus_entries.date <= ?', to_date)
+      end
+    end
+
+    def parse_date(date)
+      return nil unless date.present?
+
+      date.is_a?(Date) ? date : Date.parse(date)
     end
   end
 end
