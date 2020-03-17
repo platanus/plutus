@@ -10,18 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170710174915) do
+ActiveRecord::Schema.define(version: 20200317163045) do
 
   create_table "plutus_accounts", force: :cascade do |t|
     t.string "code"
     t.string "type"
     t.boolean "contra"
+    t.integer "scope_id"
+    t.string "scope_type"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "tenant_id"
-    t.integer "scope_id"
-    t.string "scope_type"
+    t.string "currency"
     t.index ["code", "type"], name: "index_plutus_accounts_on_code_and_type"
+    t.index ["scope_id"], name: "index_plutus_accounts_on_scope_id"
+    t.index ["scope_type"], name: "index_plutus_accounts_on_scope_type"
   end
 
   create_table "plutus_amounts", force: :cascade do |t|

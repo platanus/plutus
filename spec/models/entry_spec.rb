@@ -50,7 +50,7 @@ module Plutus
 
       context "should assign a default date before being saved" do
         before { entry.save! }
-        its(:date) { is_expected.to eq(Time.now.to_date) }
+        its(:date) { is_expected.to eq(Time.now.utc.to_date) }
       end
     end
 
