@@ -18,6 +18,12 @@ module Plutus
       end
     end
 
+    describe "when using currency" do
+      let(:account) { FactoryGirl.create(:account, type: "Finance::Asset", currency: "clp") }
+      it { is_expected.to be_valid }
+      it { expect(account.currency).to eq("clp") }
+    end
+
     it "calling the instance method #balance should raise a NoMethodError" do
       expect { subject.balance }.to raise_error NoMethodError, "undefined method 'balance'"
     end
