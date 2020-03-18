@@ -30,8 +30,8 @@ module Plutus
       end
 
       it "should work with different currency" do
-        conflict = FactoryGirl.build(:account, type: account.type, code: account.code, currency: 'other')
-        expect(conflict).to be_valid
+        no_conflict = FactoryGirl.build(:account, type: account.type, code: account.code, currency: 'other')
+        expect(no_conflict).to be_valid
       end
     end
 
