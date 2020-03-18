@@ -22,6 +22,17 @@ module Plutus
       let(:account) { FactoryGirl.create(:account, type: "Finance::Asset", currency: "clp") }
       it { is_expected.to be_valid }
       it { expect(account.currency).to eq("clp") }
+
+      it "should be unique per currency" do
+        conflict = FactoryGirl.build(:account, type: account.type, code: account.code, currency: account.currency)
+        expect(conflict).not_to be_valid
+        expect(conflict.errors[:code]).to eq(["has already been taken"])
+      end
+
+      it "should work with different currency" do
+        conflict = FactoryGirl.build(:account, type: account.type, code: account.code, currency: 'other')
+        expect(conflict).to be_valid
+      end
     end
 
     it "calling the instance method #balance should raise a NoMethodError" do
