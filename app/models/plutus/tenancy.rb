@@ -3,7 +3,7 @@ module Plutus
     extend ActiveSupport::Concern
 
     included do
-      validates :code, presence: true, uniqueness: { scope: [:tenant_id, :scope_id, :scope_type] }
+      validates :code, presence: true, uniqueness: { scope: [:tenant_id, :scope_id, :scope_type, :currency] }
 
       if ActiveRecord::VERSION::MAJOR > 4
         belongs_to :tenant, class_name: Plutus.tenant_class, optional: true

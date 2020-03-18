@@ -3,7 +3,7 @@ module Plutus
     extend ActiveSupport::Concern
 
     included do
-      validates :code, presence: true, uniqueness: { scope: [:scope_id, :scope_type] }
+      validates :code, presence: true, uniqueness: { scope: [:scope_id, :scope_type, :currency] }
     end
   end
 end
